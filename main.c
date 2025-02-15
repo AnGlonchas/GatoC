@@ -5,7 +5,10 @@ void printGame(char points[], int table[3][3]){
     printf("------- 1 ------------- 2 ------------- 3 -------\n");
     for(int i = 0; i < 3; i++){
         printf("|\t \t|\t \t|\t \t|\n");
-        printf("%d\t%c\t|\t%c\t|\t%c\t|\n",i+1,points[table[i][0]],points[table[i][1]],points[table[i][2]]);
+        printf("%d\t%c\t|\t%c\t|\t%c\t|\n",i+1,
+            points[table[i][0]],
+            points[table[i][1]],
+            points[table[i][2]]);
         printf("|\t \t|\t \t|\t \t|\n");
         printf("-------------------------------------------------\n");
     }
