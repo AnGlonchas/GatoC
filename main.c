@@ -1,86 +1,118 @@
 #include <stdio.h>
+#include <stdbool.h>
 
-// Imprime el gato
-void printGame(char points[], int table[3][3]){
-    printf("\t%c------ 1 ------+------ 2 ------+------ 3 ------%c\n",254,254);
+#define TAMANO 3  // Tamaño del tablero (3x3)
 
-    // Todo el for es un renglon, se imprime 3 veces porque son 3 renglones
+// Declaración de funciones
+void mostrarTablero(char tablero[TAMANO][TAMANO]);  // Muestra el tablero
+bool hacerMovimiento(char tablero[TAMANO][TAMANO], int fila, int columna, char jugador);  // Realiza un movimiento
+bool verificarGanador(char tablero[TAMANO][TAMANO], char jugador);  // Verifica si hay un ganador
+bool verificarEmpate(char tablero[TAMANO][TAMANO]);  // Verifica si hay un empate
 
-    for(int i = 0; i < 3; i++){
-        // Imprime un renglon sin caracteres (el \t sirve para tabular valores, los pone bonitos)
-        printf("\t|\t \t|\t \t|\t \t|\n");
-        
-        // Imprime el renglon con caracteres
-        printf("\t%d\t%c\t|\t%c\t|\t%c\t|\n",
-            //del 1 al 3
-            i+1,
-            points[table[i][0]],
-            points[table[i][1]],
-            points[table[i][2]]);
-        
-        // Imprime otro renglon sin caracteres
-        printf("\t|\t \t|\t \t|\t \t|\n");
-        printf("\t%c---------------+---------------+---------------%c\n",254,254);
-    }
-}
+int main() {
+    // Inicialización del tablero con espacios en blanco
+    char tablero[TAMANO][TAMANO] = {
+        {' ', ' ', ' '},
+        {' ', ' ', ' '},
+        {' ', ' ', ' '}
+    };
+    int fila, columna;  // Variables para almacenar la fila y columna del movimiento
+    char jugadorActual = 'X';  // Jugador actual (comienza con 'X')
+    bool juegoTerminado = false;  // Controla si el juego ha terminado
 
-//Rellena la tabla del gato con ceros
-void setZero(int table[3][3]){
-    for(int i = 0; i < 3; i++){
-        for(int ii = 0; ii < 3; ii++){
-            table[i][ii] = 132;
+    printf("Bienvenido al juego del Gato (Tic-Tac-Toe)!\n");
+
+    // Bucle principal del juego
+    while (!juegoTerminado) {
+        // Mostrar el tablero actual
+        mostrarTablero(tablero);
+
+        // Pedir al jugador actual que ingrese su movimiento
+        printf("Jugador %c, primero ingrese la fila (0-2) y luego la columna (0-2): ", jugadorActual);
+        scanf("%d %d", &fila, &columna);
+
+        // Verificar si el movimiento es válido
+        if (fila >= 0 && fila < TAMANO && columna >= 0 && columna < TAMANO && tablero[fila][columna] == ' ') {
+            // Realizar el movimiento en el tablero
+            hacerMovimiento(tablero, fila, columna, jugadorActual);
+
+            // Verificar si el jugador actual ha ganado
+            if (verificarGanador(tablero, jugadorActual)) {
+                mostrarTablero(tablero);  // Mostrar el tablero final
+                printf("¡Felicidades! El jugador %c ha ganado.\n", jugadorActual);
+                juegoTerminado = true;  // Terminar el juego
+            }
+            // Verificar si hay un empate
+            else if (verificarEmpate(tablero)) {
+                mostrarTablero(tablero);  // Mostrar el tablero final
+                printf("¡Es un empate!\n");
+                juegoTerminado = true;  // Terminar el juego
+            }
+            // Cambiar al siguiente jugador
+            jugadorActual = (jugadorActual == 'X') ? 'O' : 'X';
+        } else {
+            // Si el movimiento no es válido, mostrar un mensaje de error
+            printf("Movimiento inválido. Intente de nuevo.\n");
         }
     }
+
+    return 0;  // Fin del programa
 }
 
-// Revisa que el valor este dentro de los limites, si se sale, poner el minimo o el maximo
-int validatePos(int num){
-    if(num > 3){
-        num = 3;
-    }else if (num < 1){
-        num = 1;
+// Función para mostrar el tablero
+void mostrarTablero(char tablero[TAMANO][TAMANO]) {
+    printf("\n");
+    // Recorrer cada fila del tablero
+    for (int i = 0; i < TAMANO; i++) {
+        // Recorrer cada columna de la fila actual
+        for (int j = 0; j < TAMANO; j++) {
+            printf(" %c ", tablero[i][j]);  // Mostrar el contenido de la casilla
+            if (j < TAMANO - 1) printf("|");  // Agregar separador entre columnas
+        }
+        printf("\n");
+        // Agregar línea divisoria entre filas (excepto después de la última fila)
+        if (i < TAMANO - 1) printf("-----------\n");
     }
-    return num;
+    printf("\n");
 }
 
-//Obtiene los valores ingresados por el usuario y los asigna al array bidimensional
-void getValues(int table[3][3]){
-    int x, y;
-    printf("Escribe la primera coordenada: ");
-    scanf("%d",&x);
-    printf("Escribe la segunda coordenada: ");
-    scanf("%d",&y);
-    x = validatePos(x);
-    y = validatePos(y);
-
-    /* 
-    Empieza con la y porque en internamente las columnas van primero
-    El usuario ingresa coordenadas y se muestran como en el plano cartesiano
-    */
-    table[y-1][x-1] = 1;
-    
-}
-
-
-int main(){
-    /*
-    Array de caracteres 
-    points[0] es un espacio
-    points[1] es O
-    points[2] es X
-    */
-    char points[] = {' ', 'O', 'X'};
-    int table[3][3];
-    int run = 1;
-
-    setZero(table);
-
-	printGame(points, table);
-
-    // Bucle infinito, esto se va a cambiar
-    while(run){
-        getValues(table);
-        printGame(points, table);
+// Función para realizar un movimiento
+bool hacerMovimiento(char tablero[TAMANO][TAMANO], int fila, int columna, char jugador) {
+    // Verificar si la casilla está vacía
+    if (tablero[fila][columna] == ' ') {
+        tablero[fila][columna] = jugador;  // Colocar el símbolo del jugador en la casilla
+        return true;  // Movimiento válido
     }
-	return 0;
+    return false;  // Movimiento inválido (casilla ocupada)
+}
+
+// Función para verificar si hay un ganador
+bool verificarGanador(char tablero[TAMANO][TAMANO], char jugador) {
+    // Verificar filas y columnas
+    for (int i = 0; i < TAMANO; i++) {
+        // Verificar si todas las casillas de una fila son iguales al jugador actual
+        if (tablero[i][0] == jugador && tablero[i][1] == jugador && tablero[i][2] == jugador) return true;
+        // Verificar si todas las casillas de una columna son iguales al jugador actual
+        if (tablero[0][i] == jugador && tablero[1][i] == jugador && tablero[2][i] == jugador) return true;
+    }
+    // Verificar diagonales
+    // Diagonal principal (de arriba-izquierda a abajo-derecha)
+    if (tablero[0][0] == jugador && tablero[1][1] == jugador && tablero[2][2] == jugador) return true;
+    // Diagonal secundaria (de arriba-derecha a abajo-izquierda)
+    if (tablero[0][2] == jugador && tablero[1][1] == jugador && tablero[2][0] == jugador) return true;
+
+    return false;  // No hay ganador
+}
+
+// Función para verificar si hay un empate
+bool verificarEmpate(char tablero[TAMANO][TAMANO]) {
+    // Recorrer todas las casillas del tablero
+    for (int i = 0; i < TAMANO; i++) {
+        for (int j = 0; j < TAMANO; j++) {
+            // Si hay al menos una casilla vacía, no es empate
+            if (tablero[i][j] == ' ') return false;
+        }
+    }
+    // Si no hay casillas vacías, es empate
+    return true;
 }
